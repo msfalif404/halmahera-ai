@@ -13,6 +13,9 @@ WATSONX_URL = os.getenv('WATSONX_URL')
 WATSONX_PROJECT_ID = os.getenv('WATSONX_PROJECT_ID')
 WATSONX_MODEL_ID = os.getenv('WATSONX_MODEL_ID')
 
+# Database Configuration
+DATABASE_URL = "postgresql://neondb_owner:npg_QlZRKn6aEJW1@ep-gentle-hill-a110pntw-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
 # Search Configuration
 SEARCH_FIELDS = [
     "name^5",          

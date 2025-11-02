@@ -2,6 +2,6 @@ fastapi
 uvicorn
 elasticsearch==7.13.2
 langchain-ibm
-ibm_watsonx_ai
-numpy<2.0
 python-dotenv
+asyncpg
+pydantic

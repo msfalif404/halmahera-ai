@@ -1,0 +1,11 @@
+| Tabel                             | Primary Key (PK)   | Foreign Key (FK)                                        | Relasi                           | Keterangan                                                 |
+| --------------------------------- | ------------------ | ------------------------------------------------------- | -------------------------------- | ---------------------------------------------------------- |
+| **user**                          | `id`               | —                                                       | —                                | Entitas utama pengguna                                     |
+| **account**                       | `id`               | `user_id → user.id`                                     | **Many-to-One**                  | Satu user bisa punya banyak akun (google, credential, dll) |
+| **session**                       | `id`               | `user_id → user.id`                                     | **Many-to-One**                  | Satu user bisa punya banyak sesi login                     |
+| **scholarships**                  | `id`               | —                                                       | —                                | Master data beasiswa                                       |
+| **bookmarks**                     | `id`               | `user_id → user.id`, `scholarship_id → scholarships.id` | **Many-to-Many (via Bookmarks)** | User bisa bookmark banyak beasiswa                         |
+| **scholarship_applications**      | `id`               | `user_id → user.id`, `scholarship_id → scholarships.id` | **Many-to-One ke keduanya**      | Aplikasi yang dikirim user untuk beasiswa tertentu         |
+| **scholarship_application_tasks** | (kemungkinan `id`) | `application_id → scholarship_applications.id`          | **One-to-Many**                  | Task/task checklist dari sebuah aplikasi beasiswa          |
+| **todo**                          | `id`               | (mungkin `user_id → user.id`)                           | —                                | Tugas personal user (masih kosong)                         |
+| **verification**                  | `id`               | (mungkin `user_id → user.id`)                           | —                                | Proses verifikasi email/password (masih kosong)            |

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from core.database import db_client
-from test.models import ApplicationCreate, TaskCreate
+from core.models import ApplicationCreate, TaskCreate
 
 class ApplicationService:
     

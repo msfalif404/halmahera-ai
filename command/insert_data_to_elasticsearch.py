@@ -8,7 +8,7 @@ from ibm_watsonx_ai.metanames import EmbedTextParamsMetaNames
 from dotenv import load_dotenv
 import os
 
-load_dotenv(dotenv_path="./.env", override=True)
+load_dotenv(dotenv_path="../.env", override=True)
 
 ES_INDEX = "scholarship_vector_index"
 HOST_ELASTICSEARCH = os.getenv('HOST_ELASTICSEARCH')
@@ -17,13 +17,26 @@ WATSONX_URL = os.getenv('WATSONX_URL')
 WATSONX_PROJECT_ID = os.getenv('WATSONX_PROJECT_ID')
 WATSONX_MODEL_ID = os.getenv('WATSONX_MODEL_ID')
 
+# Validasi environment variables
+if not HOST_ELASTICSEARCH:
+    print("❌ HOST_ELASTICSEARCH tidak ditemukan di .env")
+    exit()
+if not WATSONX_API_KEY:
+    print("❌ WATSONX_API_KEY tidak ditemukan di .env")
+    exit()
+if not WATSONX_PROJECT_ID:
+    print("❌ WATSONX_PROJECT_ID tidak ditemukan di .env")
+    exit()
+
 try:
+    print(f"Mencoba koneksi ke: {HOST_ELASTICSEARCH}")
     es_client = Elasticsearch([HOST_ELASTICSEARCH])
     if not es_client.ping():
         raise ConnectionError("Koneksi ke Elasticsearch gagal.")
-    print("Berhasil terhubung ke Elasticsearch!")
+    print("✅ Berhasil terhubung ke Elasticsearch!")
 except Exception as e:
-    print(f"Error koneksi: {e}")
+    print(f"❌ Error koneksi: {e}")
+    print("Pastikan Elasticsearch berjalan di http://localhost:9200")
     exit()
 
 embed_params = {

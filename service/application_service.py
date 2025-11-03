@@ -86,7 +86,7 @@ class ApplicationService:
     async def get_tasks_by_application_id(application_id: str):
         """Fetch all tasks associated with a specific application ID."""
         try:
-            query = "SELECT * FROM scholarship_application_tasks WHERE application_id = $1"
+            query = "SELECT * FROM scholarship_application_tasks WHERE id = $1"
             results = await db_client.fetch(query, application_id)
             return [dict(record) for record in results]
         except Exception as e:

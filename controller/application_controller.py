@@ -26,4 +26,4 @@ class ApplicationController:
     @staticmethod
     async def get_task_by_id(task_id: str):
         """Return a task by its ID."""
-        return await ApplicationService.get_task_by_id(task_id)
+        return await ApplicationService.get_tasks_by_application_id(task_id)

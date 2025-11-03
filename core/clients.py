@@ -2,7 +2,7 @@ from elasticsearch import Elasticsearch
 from langchain_ibm import WatsonxEmbeddings
 from ibm_watsonx_ai.metanames import EmbedTextParamsMetaNames
 from config.settings import (
-    HOST_ELASTICSEARCH, WATSONX_API_KEY, WATSONX_URL, 
+    HOST_ELASTICSEARCH, API_KEY_ELASTICSEARCH, WATSONX_API_KEY, WATSONX_URL, 
     WATSONX_PROJECT_ID, WATSONX_MODEL_ID
 )
 
@@ -13,7 +13,7 @@ class ElasticsearchClient:
     
     def _initialize(self):
         try:
-            self.client = Elasticsearch([HOST_ELASTICSEARCH])
+            self.client = Elasticsearch([HOST_ELASTICSEARCH], api_key=API_KEY_ELASTICSEARCH)
             if not self.client.ping():
                 raise ConnectionError("Koneksi ke Elasticsearch gagal.")
             print("✅ Terhubung ke Elasticsearch!")

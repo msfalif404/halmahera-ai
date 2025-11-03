@@ -6,6 +6,7 @@ load_dotenv(dotenv_path=".env", override=True)
 # Elasticsearch Configuration
 ES_INDEX = "scholarship_vector_index"
 HOST_ELASTICSEARCH = os.getenv('HOST_ELASTICSEARCH')
+API_KEY_ELASTICSEARCH = os.environ.get("API_KEY_ELASTICSEARCH")
 
 # Watsonx Configuration
 WATSONX_API_KEY = os.getenv('WATSONX_API_KEY')

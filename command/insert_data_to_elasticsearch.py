@@ -12,6 +12,7 @@ load_dotenv(dotenv_path="../.env", override=True)
 
 ES_INDEX = "scholarship_vector_index"
 HOST_ELASTICSEARCH = os.getenv('HOST_ELASTICSEARCH')
+API_KEY_ELASTICSEARCH = os.environ.get("API_KEY_ELASTICSEARCH")
 WATSONX_API_KEY = os.getenv('WATSONX_API_KEY')
 WATSONX_URL = os.getenv('WATSONX_URL')
 WATSONX_PROJECT_ID = os.getenv('WATSONX_PROJECT_ID')
@@ -19,6 +20,9 @@ WATSONX_MODEL_ID = os.getenv('WATSONX_MODEL_ID')
 
 # Validasi environment variables
 if not HOST_ELASTICSEARCH:
+    print("❌ HOST_ELASTICSEARCH tidak ditemukan di .env")
+    exit()
+if not API_KEY_ELASTICSEARCH:
     print("❌ HOST_ELASTICSEARCH tidak ditemukan di .env")
     exit()
 if not WATSONX_API_KEY:
@@ -30,7 +34,7 @@ if not WATSONX_PROJECT_ID:
 
 try:
     print(f"Mencoba koneksi ke: {HOST_ELASTICSEARCH}")
-    es_client = Elasticsearch([HOST_ELASTICSEARCH])
+    es_client = Elasticsearch([HOST_ELASTICSEARCH], api_key=API_KEY_ELASTICSEARCH)
     if not es_client.ping():
         raise ConnectionError("Koneksi ke Elasticsearch gagal.")
     print("✅ Berhasil terhubung ke Elasticsearch!")
@@ -61,7 +65,7 @@ except Exception as e:
 
 def delete_index_if_exists(index_name):
     try:
-        es = Elasticsearch([HOST_ELASTICSEARCH])
+        es = Elasticsearch([HOST_ELASTICSEARCH], api_key=API_KEY_ELASTICSEARCH)
         es.indices.delete(index='*', ignore=[400, 404])
         es.indices.delete(index=index_name, ignore=[404])
         print("✅ Semua indices berhasil dihapus!")
@@ -177,7 +181,11 @@ def generate_and_index_data(documents):
 def perform_knn_search(query_text, k=5):
     print(f"\n🔍 Mencari: '{query_text}'...")
 
-    query_vector = watsonx_embedding.embed_query(query_text.lower())
+    vector = watsonx_embedding.embed_query(query_text.lower())
+    if isinstance(vector, list) and isinstance(vector[0], list):
+        query_vector = vector[0]
+    else:
+        query_vector = vector
 
     search_fields = [
         "name^5",          

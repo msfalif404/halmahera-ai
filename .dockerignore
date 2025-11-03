@@ -1,0 +1,25 @@
+# Git
+.git
+.gitignore
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+
+# Secrets (SANGAT PENTING)
+.env
+*.env
+
+# IDE & Editor
+.vscode/
+.idea/
+
+# Virtual environment (jika Anda buat di lokal)
+venv/
+.venv/
+
+# Lain-lain
+README.md

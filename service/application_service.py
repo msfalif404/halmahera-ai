@@ -60,7 +60,7 @@ class ApplicationService:
         try:
             task_id = str(uuid.uuid4())
             query = """
-                INSERT INTO scholarship_application_tasks (id, name, application_id, description, start_date, due_date, status)
+                INSERT INTO scholarship_application_tasks (id, name, application_id, description, is_completed, start_date, due_date)
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
                 RETURNING *
             """
@@ -71,9 +71,9 @@ class ApplicationService:
                 task_data.name,
                 task_data.application_id,
                 task_data.description,
+                task_data.is_completed,
                 task_data.start_date,
                 task_data.end_date,
-                task_data.status,
             )
 
             return dict(result) if result else None

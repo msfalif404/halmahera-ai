@@ -14,20 +14,17 @@ def get_all_scholarships(limit: int = 100):
 
 
 @router.get("/search")
-def search_scholarship(
-    query: str = Query(..., description="Teks pencarian"), k: int = 10
-):
+def search_scholarship(query: str = Query(..., description="Teks pencarian")):
     """
     Perform a search for scholarships based on a query string.
 
     Args:
         query (str): The search query string.
-        k (int): The number of top results to return. Default is 10.
 
     Returns:
         A list of scholarships matching the search criteria.
     """
-    return ScholarshipController.search_scholarship(query, k)
+    return ScholarshipController.search_scholarship(query, k=10)
 
 
 @router.post("/applications")

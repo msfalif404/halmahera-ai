@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ApplicationCreate(BaseModel):
@@ -14,6 +14,6 @@ class TaskCreate(BaseModel):
     name: str
     application_id: str
     description: Optional[str] = None
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
-    status: str = "pending"
+    is_completed: bool = False
+    start_date: datetime = Field(default_factory=datetime.now)
+    end_date: datetime = Field(default_factory=datetime.now)

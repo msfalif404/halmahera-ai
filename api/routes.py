@@ -42,17 +42,20 @@ async def create_application(application_data: ApplicationCreate):
     STRICT FLOW SEQUENCE:
     1. Guide user through filling ALL required fields for the chosen scholarship
     2. Proactively ask for clarification if information is missing
-    3. After successful creation, CONFIRM successful registration
-    4. Provide brief summary: scholarship name, deadlines, next steps
-    5. Ask user if they want to create a personalized preparation plan (task roadmap)
+    3. After successful creation, CONFIRM successful registration with key details:
+       - Scholarship name
+       - Application ID  
+       - Deadline
+       - Important requirements/reminders
+    4. Ask user if they want to get a personalized preparation plan recommendation
 
     CRITICAL RULES:
     - DO NOT call create_task endpoint from here
-    - DO NOT suggest creating tasks until AFTER application is confirmed
-    - ONLY ask about task roadmap creation after confirming application success
-    - Wait for user's explicit agreement before proceeding to task creation
+    - DO NOT create tasks until AFTER user agrees to the recommended plan
+    - ONLY ask about preparation plan recommendation after confirming application success
+    - Wait for user's explicit agreement before showing plan recommendation
 
-    This continues the flow: search_scholarship → [user selects] → create_application
+    This continues the flow: search_scholarship → [user selects] → create_application → [recommend plan] → create_task
     """
     return await ApplicationController.create_application(application_data)
 
@@ -81,19 +84,26 @@ async def create_task(task_data: TaskCreate):
     - This endpoint should ONLY be called AFTER:
       1. User has successfully created an application AND
       2. LLM has confirmed the application was registered AND  
-      3. LLM has asked if user wants a preparation plan AND
-      4. User has explicitly agreed to create a task roadmap
+      3. LLM has asked if user wants a preparation plan recommendation AND
+      4. User has explicitly agreed to see the recommendation AND
+      5. LLM has presented a detailed preparation plan with multiple tasks AND
+      6. User has explicitly agreed to create the tasks
 
     Steps:
-    1. Help define specific tasks with start and end dates based on scholarship deadline
-    2. Suggest realistic deadlines organized to optimize preparation
-    3. Encourage user to confirm or adjust each task
-    4. Summarize the full task roadmap once created
+    1. First, present a detailed preparation plan recommendation with 5-8 specific tasks
+       (e.g., IELTS preparation, CV preparation, recommendation letters, etc.)
+    2. Ask user if they want to create these tasks in the system
+    3. If user agrees, create multiple specific tasks with realistic timelines
+    4. Each task should have:
+       - Clear description (e.g., "Prepare IELTS test with target score 7.0")
+       - Specific start and end dates based on scholarship deadline
+       - Priority level
+    5. Summarize all created tasks and confirm with user
 
     The model must:
-    - Ensure user understands this is a separate step from application creation
-    - Guide step-by-step in creating each task
-    - Confirm user agreement before finalizing roadmap
+    - Create MULTIPLE specific tasks, not just one general task
+    - Ensure tasks are realistic and time-bound
+    - Get user confirmation before actually creating the tasks
     """
     return await ApplicationController.create_task(task_data)
 

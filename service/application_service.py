@@ -43,7 +43,8 @@ class ApplicationService:
                 query,
                 application_id,
                 application_data.scholarship_id,
-                application_data.user_id,
+                # application_data.user_id,
+                "HdaynXVC0R3JGKaBlSJCB4zPu1IvwLRV",
                 application_data.status,
                 datetime.now(),
             )

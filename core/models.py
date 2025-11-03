@@ -6,7 +6,6 @@ from pydantic import BaseModel, Field
 
 class ApplicationCreate(BaseModel):
     scholarship_id: str
-    user_id: str = "HdaynXVC0R3JGKaBlSJCB4zPu1IvwLRV"  # hardcoded for testing
     status: str = "on-progress"
 
 

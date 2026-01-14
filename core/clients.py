@@ -1,9 +1,7 @@
 from elasticsearch import Elasticsearch
-from langchain_ibm import WatsonxEmbeddings
-from ibm_watsonx_ai.metanames import EmbedTextParamsMetaNames
+from langchain_openai import OpenAIEmbeddings
 from config.settings import (
-    HOST_ELASTICSEARCH, API_KEY_ELASTICSEARCH, WATSONX_API_KEY, WATSONX_URL, 
-    WATSONX_PROJECT_ID, WATSONX_MODEL_ID
+    HOST_ELASTICSEARCH, API_KEY_ELASTICSEARCH, OPENAI_API_KEY
 )
 
 class ElasticsearchClient:
@@ -19,38 +17,29 @@ class ElasticsearchClient:
             print("✅ Terhubung ke Elasticsearch!")
         except Exception as e:
             print(f"❌ Error koneksi ke Elasticsearch: {e}")
-            exit()
+            # exit() # Better not to crash imports if connection fails during dev
     
     def get_client(self):
         return self.client
 
-class WatsonxClient:
+class EmbeddingClient:
     def __init__(self):
         self.embedding = None
         self._initialize()
     
     def _initialize(self):
-        embed_params = {
-            EmbedTextParamsMetaNames.TRUNCATE_INPUT_TOKENS: 512,
-            EmbedTextParamsMetaNames.RETURN_OPTIONS: {"input_text": True},
-        }
-        
         try:
-            self.embedding = WatsonxEmbeddings(
-                apikey=WATSONX_API_KEY,
-                model_id=WATSONX_MODEL_ID,
-                url=WATSONX_URL,
-                project_id=WATSONX_PROJECT_ID,
-                params=embed_params,
+            self.embedding = OpenAIEmbeddings(
+                openai_api_key=OPENAI_API_KEY
             )
-            print(f"✅ Watsonx model '{WATSONX_MODEL_ID}' siap digunakan.")
+            print(f"✅ OpenAI Embeddings siap digunakan.")
         except Exception as e:
-            print(f"❌ Error inisialisasi WatsonxEmbeddings: {e}")
-            exit()
+            print(f"❌ Error inisialisasi OpenAIEmbeddings: {e}")
+            # exit()
     
     def get_embedding(self):
         return self.embedding
 
 # Singleton instances
 es_client = ElasticsearchClient().get_client()
-watsonx_embedding = WatsonxClient().get_embedding()
+embedding_client = EmbeddingClient().get_embedding()

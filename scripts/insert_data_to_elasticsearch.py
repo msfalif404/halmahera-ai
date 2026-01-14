@@ -1,79 +1,27 @@
 import json
 import os
+import sys
 
-from elasticsearch import Elasticsearch, helpers
-from langchain_ibm import WatsonxEmbeddings
-from ibm_watsonx_ai.metanames import EmbedTextParamsMetaNames
+# Add parent directory to path to import from core
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from dotenv import load_dotenv
-import os
+from elasticsearch import helpers
+from core.clients import es_client, embedding_client
+from config.settings import ES_INDEX
 
-load_dotenv(dotenv_path="../.env", override=True)
-
-ES_INDEX = "scholarship_vector_index"
-HOST_ELASTICSEARCH = os.getenv('HOST_ELASTICSEARCH')
-API_KEY_ELASTICSEARCH = os.environ.get("API_KEY_ELASTICSEARCH")
-WATSONX_API_KEY = os.getenv('WATSONX_API_KEY')
-WATSONX_URL = os.getenv('WATSONX_URL')
-WATSONX_PROJECT_ID = os.getenv('WATSONX_PROJECT_ID')
-WATSONX_MODEL_ID = os.getenv('WATSONX_MODEL_ID')
-
-# Validasi environment variables
-if not HOST_ELASTICSEARCH:
-    print("❌ HOST_ELASTICSEARCH tidak ditemukan di .env")
-    exit()
-if not API_KEY_ELASTICSEARCH:
-    print("❌ HOST_ELASTICSEARCH tidak ditemukan di .env")
-    exit()
-if not WATSONX_API_KEY:
-    print("❌ WATSONX_API_KEY tidak ditemukan di .env")
-    exit()
-if not WATSONX_PROJECT_ID:
-    print("❌ WATSONX_PROJECT_ID tidak ditemukan di .env")
-    exit()
-
-try:
-    print(f"Mencoba koneksi ke: {HOST_ELASTICSEARCH}")
-    es_client = Elasticsearch([HOST_ELASTICSEARCH], api_key=API_KEY_ELASTICSEARCH)
-    if not es_client.ping():
-        raise ConnectionError("Koneksi ke Elasticsearch gagal.")
-    print("✅ Berhasil terhubung ke Elasticsearch!")
-except Exception as e:
-    print(f"❌ Error koneksi: {e}")
-    print("Pastikan Elasticsearch berjalan di http://localhost:9200")
-    exit()
-
-embed_params = {
-    EmbedTextParamsMetaNames.TRUNCATE_INPUT_TOKENS: 512,
-    EmbedTextParamsMetaNames.RETURN_OPTIONS: {"input_text": True},
-}
-
-try:
-    watsonx_embedding = WatsonxEmbeddings(
-        apikey=WATSONX_API_KEY,
-        model_id=WATSONX_MODEL_ID,
-        url=WATSONX_URL,
-        project_id=WATSONX_PROJECT_ID,
-        params=embed_params,
-    )
-    EMBEDDING_DIM = 384
-    print(f"Watsonx Embedding Model '{WATSONX_MODEL_ID}' siap. Dimensi diasumsikan: {EMBEDDING_DIM}")
-except Exception as e:
-    print(f"Error inisialisasi WatsonxEmbeddings: {e}")
-    exit()
-
+EMBEDDING_DIM = 1536 # OpenAI text-embedding-3-small dimension (or 1536 for ada-002)
 
 def delete_index_if_exists(index_name):
     try:
-        es = Elasticsearch([HOST_ELASTICSEARCH], api_key=API_KEY_ELASTICSEARCH)
-        es.indices.delete(index='*', ignore=[400, 404])
-        es.indices.delete(index=index_name, ignore=[404])
+        es_client.indices.delete(index='*', ignore=[400, 404])
+        # es_client.indices.delete(index=index_name, ignore=[404])
         print("✅ Semua indices berhasil dihapus!")
     except Exception as e:
         print(f"Error menghapus indeks: {e}")
 
-
-def load_data_from_json(filepath="beasiswa.json"):
+def load_data_from_json(filepath="scholarships.json"):
+    # Adjust filepath since we are in scripts/
+    filepath = os.path.join(os.path.dirname(__file__), filepath)
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -138,12 +86,10 @@ def generate_and_index_data(documents):
         try:
             text_to_embed = f"{doc.get('name', '')}. {doc.get('description', '')}"
             print(f"({idx}/{len(documents)}) Membuat embedding untuk: {doc.get('name', 'Unknown')}")
-            vector = watsonx_embedding.embed_query(text_to_embed)
+            vector = embedding_client.embed_query(text_to_embed)
 
-            if isinstance(vector, list) and isinstance(vector[0], list):
-                final_vector = vector[0]
-            else:
-                final_vector = vector
+            # OpenAI returns a flat list (already normalized usually)
+            final_vector = vector
             
             document_to_index = {
                 "_index": ES_INDEX,
@@ -181,11 +127,7 @@ def generate_and_index_data(documents):
 def perform_knn_search(query_text, k=5):
     print(f"\n🔍 Mencari: '{query_text}'...")
 
-    vector = watsonx_embedding.embed_query(query_text.lower())
-    if isinstance(vector, list) and isinstance(vector[0], list):
-        query_vector = vector[0]
-    else:
-        query_vector = vector
+    query_vector = embedding_client.embed_query(query_text.lower())
 
     search_fields = [
         "name^5",          
@@ -214,23 +156,15 @@ def perform_knn_search(query_text, k=5):
                     "source": """
                         double textScore = _score;
                         double vectorScore = cosineSimilarity(params.query_vector, 'embedding');
-                        return 0.7 * vectorScore + 0.3 * textScore;  // rasio bobot dapat disesuaikan
+                        return 0.7 * vectorScore + 0.3 * textScore;
                     """,
                     "params": {"query_vector": query_vector}
                 }
             }
         },
         "_source": [
-            "id",
-            "name",
-            "description",
-            "deadline",
-            "location",
-            "university",
-            "degree",
-            "fields",
-            "tags",
-            "url"
+            "id", "name", "description", "deadline", "location", 
+            "university", "degree", "fields", "tags", "url"
         ]
     }
 
@@ -246,19 +180,12 @@ def perform_knn_search(query_text, k=5):
             print(f"{i}. Skor gabungan: {hit['_score']:.4f}")
             print(f"   🎓 {src.get('name', '-')}")
             print(f"   🏛️ Universitas: {src.get('university', '-')}")
-            print(f"   📍 Lokasi: {src.get('location', '-')}")
-            print(f"   🎯 Bidang: {src.get('fields', '-')}")
-            if src.get("deadline"):
-                print(f"   ⏰ Deadline: {src['deadline']}")
-            print(f"   🔗 URL: {src.get('url', '-')}")
-            print(f"   📝 Deskripsi: {src.get('description', '')[:250]}...\n")
+            print(f"   📝 Deskripsi: {src.get('description', '')[:100]}...\n")
 
         return results
 
     except Exception as e:
         print(f"❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
         return None
 
 if __name__ == "__main__":
@@ -272,4 +199,3 @@ if __name__ == "__main__":
 
     if scholarship_data:
         perform_knn_search("I want to apply for a scholarship in the field of Artificial Intelligence.")
-        perform_knn_search("I want to apply for scholarship in Sweden")

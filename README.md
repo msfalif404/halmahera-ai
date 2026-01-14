@@ -1,6 +1,6 @@
 # Halmahera AI - Scholarship Search API
 
-A FastAPI-based scholarship search and application management system powered by IBM Watson AI and Elasticsearch.
+A FastAPI-based scholarship search and application management system powered by OpenAI and Elasticsearch.
 
 ## 🏗️ Project Structure
 
@@ -9,49 +9,47 @@ Halmahera-AI-IBMCloud/
 ├── api/                          # API layer
 │   ├── __init__.py
 │   └── routes.py                 # FastAPI route definitions
-├── command/                      # Data management scripts
-│   ├── insert_data_to_elasticsearch.py
-│   ├── insert_default_user.py
-│   └── scholarships.json        # Sample scholarship data
 ├── config/                       # Configuration management
 │   ├── __init__.py
-│   └── settings.py              # Environment and app settings
+│   └── settings.py               # Environment and app settings
 ├── controller/                   # Business logic controllers
 │   ├── __init__.py
 │   ├── application_controller.py # Application management
 │   └── scholarship_controller.py # Scholarship operations
-├── core/                        # Core infrastructure
+├── core/                         # Core infrastructure
 │   ├── __init__.py
-│   ├── clients.py               # External service clients
-│   ├── database.py              # Database connections
-│   └── models.py                # Pydantic data models
-├── service/                     # Service layer
+│   ├── clients.py                # External service clients (ES, OpenAI)
+│   ├── database.py               # Database connections
+│   └── models.py                 # Pydantic data models
+├── repository/                   # Data Access Layer
 │   ├── __init__.py
-│   ├── application_service.py   # Application business logic
-│   └── scholarship_service.py   # Scholarship business logic
-├── test/                        # Testing and experiments
+│   ├── application_repository.py # DB query encapsulation
+│   └── scholarship_repository.py # ES query encapsulation
+├── scripts/                      # Utility scripts
+│   ├── insert_data_to_elasticsearch.py
+│   ├── insert_default_user.py
+│   └── scholarships.json         # Sample scholarship data
+├── service/                      # Service layer
 │   ├── __init__.py
-│   ├── experiment.ipynb
-│   ├── experiment.py
-│   ├── test_api.py
-│   ├── test.ipynb
-│   └── a.txt
+│   ├── application_service.py    # Application business logic
+│   └── scholarship_service.py    # Scholarship business logic
 ├── .dockerignore
-├── .env                         # Environment variables
+├── .env                          # Environment variables
 ├── .gitignore
 ├── .python-version
-├── docker-compose.yml           # Elasticsearch container
-├── Dockerfile                   # Multi-stage Python build
-├── main.py                      # FastAPI application entry point
-├── Procfile                     # Deployment configuration
-├── pyproject.toml               # Project metadata
-├── requirements.txt             # Python dependencies
-└── uv.lock                      # Dependency lock file
+├── docker-compose.yml            # Elasticsearch container
+├── Dockerfile                    # Multi-stage Python build
+├── main.py                       # FastAPI application entry point
+├── Procfile                      # Deployment configuration
+├── pyproject.toml                # Project metadata
+├── requirements.txt              # Python dependencies
+└── uv.lock                       # Dependency lock file
 ```
 
 ## 🚀 Features
 
-- **Semantic Search**: AI-powered scholarship search using IBM Watson embeddings
+- **Semantic Search**: AI-powered scholarship search using OpenAI embeddings
+- **Service-Repository Pattern**: Clean architecture separating business logic from data access
 - **Application Management**: Track and manage scholarship applications
 - **Task Planning**: Create personalized preparation roadmaps
 - **Elasticsearch Integration**: Fast and scalable search capabilities
@@ -61,7 +59,7 @@ Halmahera-AI-IBMCloud/
 ## 🛠️ Tech Stack
 
 - **Backend**: FastAPI, Python 3.12
-- **AI/ML**: IBM Watson AI, LangChain
+- **AI/ML**: OpenAI (Embeddings), LangChain
 - **Search**: Elasticsearch 7.17
 - **Database**: PostgreSQL (Neon)
 - **Deployment**: Docker, Gunicorn
@@ -71,7 +69,7 @@ Halmahera-AI-IBMCloud/
 
 - Python 3.11+
 - Docker & Docker Compose
-- IBM Watson AI credentials
+- OpenAI API Key
 - Elasticsearch instance
 - PostgreSQL database
 
@@ -93,10 +91,7 @@ Halmahera-AI-IBMCloud/
    ```env
    HOST_ELASTICSEARCH=<elasticsearch-host>
    API_KEY_ELASTICSEARCH=<elasticsearch-api-key>
-   WATSONX_API_KEY=<watson-api-key>
-   WATSONX_URL=<watson-url>
-   WATSONX_PROJECT_ID=<watson-project-id>
-   WATSONX_MODEL_ID=<watson-model-id>
+   OPENAI_API_KEY=<your-openai-api-key>
    ```
 
 4. **Start Elasticsearch**
@@ -106,8 +101,8 @@ Halmahera-AI-IBMCloud/
 
 5. **Initialize data**
    ```bash
-   python command/insert_data_to_elasticsearch.py
-   python command/insert_default_user.py
+   python scripts/insert_data_to_elasticsearch.py
+   python scripts/insert_default_user.py
    ```
 
 6. **Run the application**
@@ -143,10 +138,11 @@ docker-compose up --build
 
 ## 📊 Architecture
 
-The application follows a layered architecture:
+The application follows a Service-Repository layered architecture:
 
-1. **API Layer** (`api/`) - HTTP endpoints and request handling
-2. **Controller Layer** (`controller/`) - Business logic coordination
-3. **Service Layer** (`service/`) - Core business operations
-4. **Core Layer** (`core/`) - Infrastructure and data models
-5. **Configuration** (`config/`) - Settings and environment management
+1. **API Layer** (`api/`) - HTTP endpoints and request handling.
+2. **Controller Layer** (`controller/`) - Orchestrates request flow, interacting with Services.
+3. **Service Layer** (`service/`) - Implements business logic and domain rules.
+4. **Repository Layer** (`repository/`) - Handles abstract data access (Database/Elasticsearch).
+5. **Core Layer** (`core/`) - Shared infrastructure, clients, and data models.
+6. **Configuration** (`config/`) - Settings and environment management.

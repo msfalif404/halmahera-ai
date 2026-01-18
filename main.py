@@ -13,3 +13,6 @@ async def shutdown_event():
     await db_client.disconnect()
 
 app.include_router(router)
+
+from agent.routes import router as agent_router
+app.include_router(agent_router)

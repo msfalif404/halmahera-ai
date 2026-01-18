@@ -6,3 +6,7 @@ python-dotenv
 asyncpg
 pydantic
 numpy<2.0
+langgraph
+langchain
+streamlit
+aiohttp
